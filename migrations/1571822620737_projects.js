@@ -5,18 +5,10 @@ exports.up = pgm => {
       type: 'uuid',
       default: pgm.func('uuid_generate_v4()'),
       notNull: true,
+      primaryKey: true,
     },
     name: {
       type: 'varchar(50)',
-    },
-    hours: {
-      type: 'int',
-    },
-    reason: {
-      type: 'varchar(50)',
-    },
-    time: {
-      type: 'varchar(50)'
     },
     created_at: {
       type: 'timestamp',

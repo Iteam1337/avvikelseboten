@@ -16,8 +16,13 @@ exports.up = pgm => {
     reason: {
       type: 'varchar(50)',
     },
-    project: {
-      type: 'varchar(50)',
+    project_id: {
+      type: 'uuid',
+      notNull: true,
+      references: {
+        schema: 'public',
+        name: 'projects',
+      },
     },
     time: {
       type: 'varchar(50)',

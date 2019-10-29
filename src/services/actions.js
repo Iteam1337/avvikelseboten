@@ -1,7 +1,16 @@
-const { reportDeviation, getReports } = require('./queries')
+const {
+  reportDeviation,
+  getReports,
+  getProjectByName,
+  createProject,
+  getProjectById,
+} = require('./queries')
 const moment = require('moment')
 const dotenv = require('dotenv')
 dotenv.config()
+
+const { listTemplate } = require('../templates/listTemplate')
+const { reportTemplate } = require('../templates/reportTemplate')
 
 const SlackBot = require('slackbots')
 const bot = new SlackBot({
@@ -17,7 +26,6 @@ bot.on('message', function(data) {
   if (data.type !== 'message') {
     return
   }
-
   if (data.subtitle === 'Avvikelseboten (bot)') {
     return
   }
@@ -38,61 +46,86 @@ async function handleMessage(data, user) {
   const slack_id = data.user
   const text = data.text
   const userName = user.name
+  let message
 
   option = text.split(' ')
 
   if (text) {
     switch (option[0]) {
       case '--me':
-        bot.postMessageToUser(
-          userName,
-          `ID: ${slack_id} Name: ${userName}`
-          // GET REQUEST TO USER INFORMATION ON ID?
-        )
+        // DISPLAY CURRENT USER ID AND NAME
+        bot.postMessageToUser(userName, `ID: ${slack_id} Name: ${userName}`)
         break
+
+      case '--newProject':
+        // POST REQUEST TO STORE A NEW PROJECT IN DATABASE
+        let newProject = option[1]
+        let createProjectData = {
+          newProject,
+        }
+        try {
+          await createProject(createProjectData)
+          message = `${userName} created a new project: ${newProject}`
+        } catch (err) {
+          console.error(err)
+          message = `Something went wrong: ${err}`
+        }
+
+        bot.postMessageToUser(userName, message)
+        break
+
       case '--report':
+        // POST REQUEST TO STORE A DEVIATION WITH FOLLOWING INFORMATION
         let hours = option[1]
         let reason = option[2]
         let project = option[3]
-        
+
         let time = moment(option[4]).format('LL')
+
+        let project_id = await getProjectByName(project)
 
         let reportData = {
           hours,
           reason,
-          project,
+          project_id,
           slack_id,
           time,
         }
 
-        if ((hours, reason, project, time === undefined)) {
-          message = 'You did not report correctly'
+        if ((hours, reason, time === undefined)) {
+          message = 'One option was not reported correctly!'
+        } else if (time === 'Invalid date') {
+          message = 'You have to use a correct time-format (YYYY-MM-DD)'
+        } else if (project_id === undefined) {
+          message = "Couldn't find any project with that name"
         } else {
-
           message = `You just reported ${hours}h of ${reason} for project ${project} at the date of: ${time}!`
         }
-        try {
-          await reportDeviation(reportData)
-        } catch (err) {
-          console.error(err)
+        if (project_id) {
+          try {
+            await reportDeviation(reportData)
+          } catch (err) {
+            bot.postMessageToUser(`Something went wrong fetching data: ${err}`)
+            console.error(err)
+          }
         }
 
-        bot.postMessageToUser(
-          userName,
-          message
-          // POST REQUEST TO STORE REASON, HOURS, PROJECTS, time IN DB
-        )
+        bot.postMessageToUser(userName, message)
         break
+
       case '--update':
+        // PUT REQUEST TO UPDATE SPECIFIC ROW ON USER TABLE - but why? IS THIS USEFUL?!
+
         let whatUpdate = option[1]
         let value = option[2]
         bot.postMessageToUser(
           userName,
           `you updated your ${whatUpdate} to: ${value}!`
-          // PUT REQUEST TO UPDATE SPECIFIC ROW ON USER TABLE - but why?
         )
         break
+
       case '--checkout':
+        // GET REQUEST TO FETCH ALL DEVIATIONS FOR CURRENT USER FOR QUERIED MONTH
         let month = option[1]
         let checkoutData = {
           month,
@@ -100,20 +133,24 @@ async function handleMessage(data, user) {
         }
 
         const data = await getReports(checkoutData)
-
+        let projectName
         for (i = 0; i < data.length; i++) {
-          // TODO::: created_at is an integer and needs to be a cuttable string
-
+          if (data) {
+            projectName = await getProjectById(data[0].project_id)
+          }
           bot.postMessageToUser(
             userName,
-            `${hej[i]}\n
-              ${data[i].hours}h, Reason: ${data[i].reason}, Project: ${data[i].project}!`
-            // GET REQUEST * FOR DEVIATIONS TABLE ON USER.ID
+            `${data[i].time}\n
+              ${data[i].hours}h, Reason: ${data[i].reason}, Project: ${data[i].name}!`
           )
         }
         break
+
       default:
-        bot.postMessageToUser(userName, 'Please use a valid command!')
+        bot.postMessageToUser(
+          userName,
+          'Please use a valid command! Type /list to see all commands!'
+        )
     }
   }
 }
@@ -125,34 +162,7 @@ function handleAction(req, res, next) {
 }
 
 function listCommands(req, res, next) {
-  res.send({
-    blocks: [
-      {
-        type: 'section',
-        text: {
-          type: 'plain_text',
-          text:
-            'Hey ' +
-            req.body.user_name +
-            ' :smile:! You can use following commands:',
-          emoji: true,
-        },
-      },
-      {
-        type: 'divider',
-      },
-      {
-        type: 'context',
-        elements: [
-          {
-            type: 'mrkdwn',
-            text:
-              '• `--me` Information about you\n• `--update` Update your information\n• `--report` Report deviation -> Hours, Reason, Project & Time(YYYY-MM-DD) eg. "--report 8 Sick Vimla 2019-05-22"\n• `--checkout` List your deviations for this month eg. "--checkout October"\n',
-          },
-        ],
-      },
-    ],
-  })
+  listTemplate(req, res)
 }
 
 function displayPayloads(req, res, next) {
@@ -160,52 +170,7 @@ function displayPayloads(req, res, next) {
 }
 
 function report(req, res, next) {
-  res.send({
-    blocks: [
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: 'Report deviation:',
-        },
-        accessory: {
-          type: 'static_select',
-          action_id: 'kalle',
-          placeholder: {
-            type: 'plain_text',
-            text: 'Anledning',
-            emoji: true,
-          },
-          options: [
-            {
-              text: {
-                type: 'plain_text',
-                text: 'Sick',
-                emoji: true,
-              },
-              value: 'value-0',
-            },
-          ],
-        },
-      },
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: ' ',
-        },
-        accessory: {
-          type: 'button',
-          text: {
-            type: 'plain_text',
-            text: 'Submit',
-            emoji: true,
-          },
-          value: 'click_me_123',
-        },
-      },
-    ],
-  })
+  reportTemplate(req, res)
 }
 
 module.exports = {
