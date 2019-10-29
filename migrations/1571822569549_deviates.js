@@ -1,4 +1,4 @@
-exports.up = (pgm) => {
+exports.up = pgm => {
   pgm.createExtension('uuid-ossp', { ifNotExists: true })
   return pgm.createTable('deviates', {
     id: {
@@ -11,13 +11,16 @@ exports.up = (pgm) => {
       notNull: true,
     },
     hours: {
-      type: 'int'
+      type: 'int',
     },
     reason: {
-      type: 'varchar(50)'
+      type: 'varchar(50)',
     },
     project: {
-      type: 'varchar(50)'
+      type: 'varchar(50)',
+    },
+    time: {
+      type: 'varchar(50)',
     },
     created_at: {
       type: 'timestamp',
@@ -25,6 +28,6 @@ exports.up = (pgm) => {
       default: pgm.func('current_timestamp'),
     },
   })
-};
+}
 
 exports.down = pgm => pgm.dropTable('deviates')

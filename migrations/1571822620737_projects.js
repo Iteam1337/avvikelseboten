@@ -15,6 +15,9 @@ exports.up = pgm => {
     reason: {
       type: 'varchar(50)',
     },
+    time: {
+      type: 'varchar(50)'
+    },
     created_at: {
       type: 'timestamp',
       notNull: true,

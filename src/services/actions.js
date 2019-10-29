@@ -1,7 +1,7 @@
 const { reportDeviation, getReports } = require('./queries')
 const moment = require('moment')
-const dotenv = require('dotenv');
-dotenv.config();
+const dotenv = require('dotenv')
+dotenv.config()
 
 const SlackBot = require('slackbots')
 const bot = new SlackBot({
@@ -54,22 +54,22 @@ async function handleMessage(data, user) {
         let hours = option[1]
         let reason = option[2]
         let project = option[3]
-        let time = option[4]
+        
+        let time = moment(option[4]).format('LL')
 
         let reportData = {
           hours,
           reason,
           project,
           slack_id,
-          time
+          time,
         }
 
         if ((hours, reason, project, time === undefined)) {
           message = 'You did not report correctly'
         } else {
-          formattedTime = time.format('LL');
-          
-          message = `You just reported ${hours} of ${reason} for project ${project} at the date of: ${formattedTime}!`
+
+          message = `You just reported ${hours}h of ${reason} for project ${project} at the date of: ${time}!`
         }
         try {
           await reportDeviation(reportData)
@@ -103,7 +103,7 @@ async function handleMessage(data, user) {
 
         for (i = 0; i < data.length; i++) {
           // TODO::: created_at is an integer and needs to be a cuttable string
-        
+
           bot.postMessageToUser(
             userName,
             `${hej[i]}\n
@@ -147,7 +147,7 @@ function listCommands(req, res, next) {
           {
             type: 'mrkdwn',
             text:
-              '• `--me` Information about you\n• `--update` Update your information\n• `--report` Report deviation (YYYY-MM-DD) eg. "2019-05-22"\n• `--checkout` List your deviations for this month\n',
+              '• `--me` Information about you\n• `--update` Update your information\n• `--report` Report deviation -> Hours, Reason, Project & Time(YYYY-MM-DD) eg. "--report 8 Sick Vimla 2019-05-22"\n• `--checkout` List your deviations for this month eg. "--checkout October"\n',
           },
         ],
       },

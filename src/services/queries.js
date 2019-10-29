@@ -51,7 +51,7 @@ const createUser = async (data, response) => {
 }
 
 const reportDeviation = async (data, response) => {
-  const { hours, reason, project, slack_id } = data
+  const { hours, reason, project, slack_id, time } = data
 
   await pool.query(
     'INSERT INTO deviates (hours, reason, project, slack_id, time) VALUES ($1, $2, $3, $4, $5)',
