@@ -24,19 +24,35 @@ const getReports = data => {
   })
 }
 
-const createUser = async (data, response) => {
-  const { name, slack_id } = request.body
-
-  await pool.query(
-    'INSERT INTO users (name, slack_id) VALUES ($1, $2)',
-    [name, slack_id],
-    (error, results) => {
-      if (error) {
-        throw error
+const userExists = data => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      `SELECT * FROM public.users WHERE slack_id = '${data}';`,
+      (error, results) => {
+        if (error) {
+          throw error
+        }
+        resolve(results)
       }
-      response.status(201).send(`User added with ID: ${results.insertId}`)
-    }
-  )
+    )
+  })
+}
+
+const createUser = data => {
+  console.log(data)
+
+  return new Promise((resolve, reject) => {
+    pool.query(
+      'INSERT INTO users (slack_id) VALUES ($1);',
+      [data],
+      (error, results) => {
+        if (error) {
+          throw error
+        }
+        resolve(results.insertId)
+      }
+    )
+  })
 }
 
 const reportDeviation = async (data, response) => {
@@ -106,4 +122,5 @@ module.exports = {
   getReports,
   getProjectByName,
   createProject,
+  userExists,
 }

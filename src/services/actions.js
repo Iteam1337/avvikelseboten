@@ -4,6 +4,8 @@ const {
   getProjectByName,
   createProject,
   getProjectById,
+  createUser,
+  userExists,
 } = require('./queries')
 const moment = require('moment')
 const dotenv = require('dotenv')
@@ -55,6 +57,32 @@ async function handleMessage(data, user) {
       case '--me':
         // DISPLAY CURRENT USER ID AND NAME
         bot.postMessageToUser(userName, `ID: ${slack_id} Name: ${userName}`)
+        break
+
+      case '--add':
+        // ADD USER TO DATABASE
+        const exists = await userExists(slack_id)
+        console.log(exists.rowCount)
+        if (exists.rowCount === 0) {
+          try {
+            await createUser(slack_id)
+          } catch (err) {
+            throw new Error(
+              'Something went wrong when trying to add user: ',
+              err
+            )
+          }
+
+          bot.postMessageToUser(
+            userName,
+            `Your ID: ${slack_id} was saved to the database!`
+          )
+        } else {
+          bot.postMessageToUser(
+            userName,
+            `You are already saved in the database!`
+          )
+        }
         break
 
       case '--whois':

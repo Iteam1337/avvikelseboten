@@ -10,10 +10,6 @@ exports.up = pgm => {
       type: 'varchar(128)',
       notNull: true,
     },
-    name: {
-      type: 'varchar(1000)',
-      notNull: true,
-    },
     created_at: {
       type: 'timestamp',
       notNull: true,
