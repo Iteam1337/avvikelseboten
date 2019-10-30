@@ -21,7 +21,7 @@ const listTemplate = (req, res) => {
           {
             type: 'mrkdwn',
             text:
-              '• `--me` Information about you\n\n\n• `--whois` Get user information on ID --> id eg. "--whois FUS8XPWQ12L"\n\n\n• `--update` Update your information\n\n\n• `--report` Report deviation -> Hours, Reason, Project & Time(YYYY-MM-DD) eg. "--report 8 Sick Vimla 2019-05-22"\n\n\n• `--checkout` List your deviations for this month eg. "--checkout Oct"\n\n\n• `--newproject` Create a new project by name, eg. "--newproject Vimla"',
+              '• `--me` Information about you\n\n\n• `--add` Store your profile in the database!\n\n\n• `--whois` Get user information on ID --> id eg. "--whois FUS8XPWQ12L"\n\n\n• `--update` Update your information\n\n\n• `--report` Report deviation -> Hours, Reason, Project & Time(YYYY-MM-DD) eg. "--report 8 Sick Vimla 2019-05-22"\n\n\n• `--checkout` List your deviations for this month eg. "--checkout Oct"\n\n\n• `--newproject` Create a new project by name, eg. "--newproject Vimla"',
           },
         ],
       },

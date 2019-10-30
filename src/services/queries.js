@@ -39,8 +39,6 @@ const userExists = data => {
 }
 
 const createUser = data => {
-  console.log(data)
-
   return new Promise((resolve, reject) => {
     pool.query(
       'INSERT INTO users (slack_id) VALUES ($1);',

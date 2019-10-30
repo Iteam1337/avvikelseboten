@@ -62,7 +62,6 @@ async function handleMessage(data, user) {
       case '--add':
         // ADD USER TO DATABASE
         const exists = await userExists(slack_id)
-        console.log(exists.rowCount)
         if (exists.rowCount === 0) {
           try {
             await createUser(slack_id)
@@ -80,7 +79,7 @@ async function handleMessage(data, user) {
         } else {
           bot.postMessageToUser(
             userName,
-            `You are already saved in the database!`
+            `Your ID: ${slack_id} is already saved in the database!`
           )
         }
         break
