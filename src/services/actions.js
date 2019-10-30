@@ -124,7 +124,7 @@ async function handleMessage(data, user) {
 
       case '--report':
         // POST REQUEST TO STORE A DEVIATION WITH FOLLOWING INFORMATION
-        let hours = option[1]
+        let hours = parseInt(option[1])
         let reason = option[2]
         let project = option[3].toUpperCase()
         let time = moment(option[4])
@@ -143,7 +143,9 @@ async function handleMessage(data, user) {
 
         if ((hours, reason, time === undefined)) {
           message = 'One option was not reported correctly!'
-        } else if (time === 'Invalid date') {
+        } else if (hours === NaN) {
+          message = 'You have not reported hours correctly! Only the number of hours!'
+        } else if (time === 'INVALID DATE') {
           message = 'You have to use a correct time-format (YYYY-MM-DD)'
         } else if (project_id === undefined) {
           message = "Couldn't find any project with that name"
@@ -190,8 +192,7 @@ async function handleMessage(data, user) {
             projectName = await getProjectById(data[0].project_id)
             bot.postMessageToUser(
               userName,
-              `${data[i].time}\n
-              ${data[i].hours}h, Reason: ${data[i].reason}, Project: ${data[i].name}!`
+              `*${data[i].time}*\n${data[i].hours}h | ${data[i].reason} | ${data[i].name}!`
             )
           }
         } else if (data.length === 0) {
