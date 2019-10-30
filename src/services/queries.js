@@ -16,7 +16,7 @@ const getReports = data => {
 
   return new Promise((resolve, reject) => {
     pool.query(
-      `SELECT * FROM public.deviates INNER JOIN projects ON project_id = projects.id WHERE slack_id = '${idUpper}' AND time LIKE '${month}%' ORDER BY time ASC;`,
+      `SELECT * FROM public.deviations INNER JOIN projects ON project_id = projects.id WHERE slack_id = '${idUpper}' AND time LIKE '${month}%' ORDER BY time ASC;`,
       (error, results) => {
         if (error) {
           throw error
@@ -60,7 +60,7 @@ const reportDeviation = async (data, response) => {
   const { hours, reason, project_id, slack_id, time } = data
 
   await pool.query(
-    'INSERT INTO deviates (hours, reason, project_id, slack_id, time) VALUES ($1, $2, $3, $4, $5)',
+    'INSERT INTO deviations (hours, reason, project_id, slack_id, time) VALUES ($1, $2, $3, $4, $5)',
     [hours, reason, project_id, slack_id, time],
     (error, results) => {
       if (error) {

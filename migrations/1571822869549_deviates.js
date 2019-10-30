@@ -1,6 +1,6 @@
 exports.up = pgm => {
   pgm.createExtension('uuid-ossp', { ifNotExists: true })
-  return pgm.createTable('deviates', {
+  return pgm.createTable('deviations', {
     id: {
       type: 'uuid',
       default: pgm.func('uuid_generate_v4()'),
@@ -35,4 +35,4 @@ exports.up = pgm => {
   })
 }
 
-exports.down = pgm => pgm.dropTable('deviates')
+exports.down = pgm => pgm.dropTable('deviations')
