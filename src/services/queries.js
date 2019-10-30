@@ -54,7 +54,6 @@ const reportDeviation = async (data, response) => {
 }
 
 const createProject = async (data, response) => {
-  console.log(data)
   const { newProject } = data
 
   await pool.query(
@@ -74,9 +73,11 @@ const getProjectByName = (data, response) => {
     pool.query(
       `SELECT id FROM public.projects WHERE name = '${project}';`,
       (error, results) => {
-        if (error) {
-          throw error
+        if (results.rowCount === 0) {
+          resolve(undefined)
+          return
         }
+        // TODO DEN HÄR FUNKTIONEN KASTAR FATAL FEL NÄR MAN INTE HAR ETT PROJECT VID RÄTT NAMN
         resolve(results.rows[0].id)
       }
     )

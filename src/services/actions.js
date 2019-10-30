@@ -57,15 +57,33 @@ async function handleMessage(data, user) {
         bot.postMessageToUser(userName, `ID: ${slack_id} Name: ${userName}`)
         break
 
-      case '--newProject':
+      case '--whois':
+        // DISPLAY SOMEONES USER ID AND NAME <--- ONLY ADMIN, prompt for admin or password?
+        const prompt = option[1].toUpperCase()
+        if (user.is_admin) {
+          promptedUser = await bot.getUserById(prompt)
+          const { real_name, email } = promptedUser.profile
+          bot.postMessageToUser(
+            userName,
+            `ID: ${prompt}\n belongs to: ${real_name} | ${email} | user is: ${promptedUser.presence}`
+          )
+        } else {
+          bot.postMessageToUser(
+            userName,
+            `You are not authorized for the request`
+          )
+        }
+        break
+
+      case '--newproject':
         // POST REQUEST TO STORE A NEW PROJECT IN DATABASE
-        let newProject = option[1]
+        let newProject = option[1].toUpperCase()
         let createProjectData = {
           newProject,
         }
         try {
           await createProject(createProjectData)
-          message = `${userName} created a new project: ${newProject}`
+          message = `${userName} created a new project: ${option[1]}`
         } catch (err) {
           console.error(err)
           message = `Something went wrong: ${err}`
@@ -78,12 +96,13 @@ async function handleMessage(data, user) {
         // POST REQUEST TO STORE A DEVIATION WITH FOLLOWING INFORMATION
         let hours = option[1]
         let reason = option[2]
-        let project = option[3]
+        let project = option[3].toUpperCase()
+        let time = moment(option[4])
+          .format('LL')
+          .toUpperCase()
 
-        let time = moment(option[4]).format('LL')
-
+        // TODO DEN HÄR FUNKTIONEN KASTAR FATAL FEL OM PROJECT INTE FINNS
         let project_id = await getProjectByName(project)
-
         let reportData = {
           hours,
           reason,
@@ -100,13 +119,15 @@ async function handleMessage(data, user) {
           message = "Couldn't find any project with that name"
         } else {
           message = `You just reported ${hours}h of ${reason} for project ${project} at the date of: ${time}!`
-        }
-        if (project_id) {
-          try {
-            await reportDeviation(reportData)
-          } catch (err) {
-            bot.postMessageToUser(`Something went wrong fetching data: ${err}`)
-            console.error(err)
+          if (reportData) {
+            try {
+              await reportDeviation(reportData)
+            } catch (err) {
+              bot.postMessageToUser(
+                `Something went wrong fetching data: ${err}`
+              )
+              console.error(err)
+            }
           }
         }
 
@@ -126,22 +147,27 @@ async function handleMessage(data, user) {
 
       case '--checkout':
         // GET REQUEST TO FETCH ALL DEVIATIONS FOR CURRENT USER FOR QUERIED MONTH
-        let month = option[1]
+        let month = option[1].toUpperCase()
         let checkoutData = {
           month,
           slack_id,
         }
 
         const data = await getReports(checkoutData)
-        let projectName
-        for (i = 0; i < data.length; i++) {
-          if (data) {
+
+        if (data.length > 0) {
+          for (i = 0; i < data.length; i++) {
             projectName = await getProjectById(data[0].project_id)
+            bot.postMessageToUser(
+              userName,
+              `${data[i].time}\n
+              ${data[i].hours}h, Reason: ${data[i].reason}, Project: ${data[i].name}!`
+            )
           }
+        } else if (data.length === 0) {
           bot.postMessageToUser(
             userName,
-            `${data[i].time}\n
-              ${data[i].hours}h, Reason: ${data[i].reason}, Project: ${data[i].name}!`
+            `It seems you have nothing reported for that month!`
           )
         }
         break
