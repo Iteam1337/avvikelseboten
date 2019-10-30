@@ -1,10 +1,13 @@
+const dotenv = require('dotenv')
+dotenv.config()
+
 const Pool = require('pg').Pool
 const pool = new Pool({
-  user: 'iteamadmin',
-  password: 'adminadmin1337',
-  host: 'localhost',
-  database: 'avvikelseboten',
-  port: 5432,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST,
+  database: process.env.DB_DATABASE,
+  port: process.env.DB_PORT,
 })
 
 const getReports = data => {

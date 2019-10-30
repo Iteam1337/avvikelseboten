@@ -23,6 +23,9 @@ const bot = new SlackBot({
 bot.on('start', () => {
   // bot.postMessageToChannel('general', 'I am live!')
 })
+bot.on('im_open', () => {
+  console.log('hej')
+})
 
 bot.on('message', function(data) {
   if (data.type !== 'message') {
@@ -209,6 +212,14 @@ async function handleMessage(data, user) {
 }
 
 function handleAction(req, res, next) {
+  // THIS IS EXPERIMENTAL
+  const event = req.body.event
+  if (event.type === 'team_join' && !event.is_bot) {
+    const { id } = event.user
+    bot.postMessage(id, 'hej')
+  }
+  // THIS IS EXPERIMENTAL
+
   res.send({
     challenge: req.body.challenge,
   })
@@ -218,9 +229,7 @@ function listCommands(req, res, next) {
   listTemplate(req, res)
 }
 
-function displayPayloads(req, res, next) {
-  console.log(req, res)
-}
+function displayPayloads(req, res, next) {}
 
 function report(req, res, next) {
   reportTemplate(req, res)

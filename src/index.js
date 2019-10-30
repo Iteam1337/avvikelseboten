@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const cors = require('cors')
-const { handleAction, listCommands, report, displayPayloads } = require('./services/actions')
+const { handleAction, listCommands, report } = require('./services/actions')
 
 const port = 3000
 
