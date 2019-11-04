@@ -23,18 +23,6 @@ const bot = new SlackBot({
   name: 'Avvikelseboten',
 })
 
-bot.on('team_join', () => {
-  bot.postMessageToUser('UPRHBQXQX', 'någon loggade in!')
-})
-
-bot.on('message', async data => {
-  if (data.type === 'team_join') {
-    await createUser(data.user.id)
-
-    bot.postMessageToUser('daniel.hernqvist', 'någon loggade in!')
-  }
-})
-
 bot.on('message', function(data) {
   if (data.type !== 'message') {
     return
@@ -262,7 +250,7 @@ setInterval(() => {
               userGreeted(user.slack_id)
               bot.postMessageToUser(
                 slackUser.name,
-                'Hej o välkommen din gamla galosch'
+                'Hej! Till mig kan du rapportera avvikelser för projekten ni jobbar på!\n Skriv /list för att lista alla kommandon!'
               )
             }
           })

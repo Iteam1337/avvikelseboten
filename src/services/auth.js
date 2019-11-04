@@ -28,7 +28,7 @@ const validateRequest = (req, res, next) => {
   ) {
     next()
   } else {
-    return res.status(400).send('Verification failed')
+    return res.status(400).send('Verification failed, you are not authorized!')
   }
 
   next()
