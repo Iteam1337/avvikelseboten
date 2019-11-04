@@ -5,8 +5,11 @@ const {
   createProject,
   getProjectById,
   createUser,
-  userExists,
+  getUser,
+  getAllUsers,
+  userGreeted,
 } = require('./queries')
+
 const moment = require('moment')
 const dotenv = require('dotenv')
 dotenv.config()
@@ -27,6 +30,18 @@ bot.on('im_open', () => {
   console.log('hej')
 })
 
+bot.on('team_join', () => {
+  bot.postMessageToUser('UPRHBQXQX', 'någon loggade in!')
+})
+
+bot.on('message', async data => {
+  if (data.type === 'team_join') {
+    await createUser(data.user.id)
+
+    bot.postMessageToUser('daniel.hernqvist', 'någon loggade in!')
+  }
+})
+
 bot.on('message', function(data) {
   if (data.type !== 'message') {
     return
@@ -35,6 +50,7 @@ bot.on('message', function(data) {
     return
   }
   if (data.user) {
+    console.log(data.user)
     bot
       .getUserById(data.user)
       .then((user, err) => {
@@ -64,7 +80,7 @@ async function handleMessage(data, user) {
 
       case '--add':
         // ADD USER TO DATABASE
-        const exists = await userExists(slack_id)
+        const exists = await getUser(slack_id)
         if (exists.rowCount === 0) {
           try {
             await createUser(slack_id)
@@ -89,9 +105,22 @@ async function handleMessage(data, user) {
 
       case '--whois':
         // DISPLAY SOMEONES USER ID AND NAME <--- ONLY ADMIN, prompt for admin or password?
+
+        if (!option[1]) {
+          bot.postMessageToUser(userName, `Please specify a user ID`)
+          break
+        }
         const prompt = option[1].toUpperCase()
+
         if (user.is_admin) {
           promptedUser = await bot.getUserById(prompt)
+          if (!promptedUser) {
+            bot.postMessageToUser(
+              userName,
+              `Couldn't find any user with that ID`
+            )
+            break
+          }
           const { real_name, email } = promptedUser.profile
           bot.postMessageToUser(
             userName,
@@ -144,7 +173,8 @@ async function handleMessage(data, user) {
         if ((hours, reason, time === undefined)) {
           message = 'One option was not reported correctly!'
         } else if (hours === NaN) {
-          message = 'You have not reported hours correctly! Only the number of hours!'
+          message =
+            'You have not reported hours correctly! Only the number of hours!'
         } else if (time === 'INVALID DATE') {
           message = 'You have to use a correct time-format (YYYY-MM-DD)'
         } else if (project_id === undefined) {
@@ -213,14 +243,6 @@ async function handleMessage(data, user) {
 }
 
 function handleAction(req, res, next) {
-  // THIS IS EXPERIMENTAL
-  const event = req.body.event
-  if (event.type === 'team_join' && !event.is_bot) {
-    const { id } = event.user
-    bot.postMessage(id, 'hej')
-  }
-  // THIS IS EXPERIMENTAL
-
   res.send({
     challenge: req.body.challenge,
   })
@@ -235,6 +257,30 @@ function displayPayloads(req, res, next) {}
 function report(req, res, next) {
   reportTemplate(req, res)
 }
+
+setInterval(() => {
+  getAllUsers().then(users => {
+    users.map(user => {
+      const time = Math.floor(new Date().getTime() / 1000)
+      const created = Math.floor(user.created_at.getTime() / 1000)
+      console.log('time->', time)
+      console.log('created-->', created)
+      if (Math.abs(time - created) > 120) {
+        if (user.has_been_greeted === false) {
+          bot.getUserById(user.slack_id).then(slackUser => {
+            if (slackUser) {
+              userGreeted(user.slack_id)
+              bot.postMessageToUser(
+                slackUser.name,
+                'Hej o välkommen din gamla galosch'
+              )
+            }
+          })
+        }
+      }
+    })
+  })
+}, 3600000)
 
 module.exports = {
   handleAction,

@@ -27,7 +27,32 @@ const getReports = data => {
   })
 }
 
-const userExists = data => {
+const getAllUsers = data => {
+  return new Promise((resolve, reject) => {
+    pool.query(`SELECT * FROM public.users;`, (error, results) => {
+      if (error) {
+        throw error
+      }
+      resolve(results.rows)
+    })
+  })
+}
+
+const userGreeted = data => {
+  return new Promise((resolve, reject) => {
+    pool.query(
+      `UPDATE public.users SET has_been_greeted = true WHERE slack_id = '${data}';`,
+      (error, results) => {
+        if (error) {
+          throw error
+        }
+        resolve(results.rows)
+      }
+    )
+  })
+}
+
+const getUser = data => {
   return new Promise((resolve, reject) => {
     pool.query(
       `SELECT * FROM public.users WHERE slack_id = '${data}';`,
@@ -123,5 +148,7 @@ module.exports = {
   getReports,
   getProjectByName,
   createProject,
-  userExists,
+  getUser,
+  getAllUsers,
+  userGreeted,
 }
