@@ -23,13 +23,6 @@ const bot = new SlackBot({
   name: 'Avvikelseboten',
 })
 
-bot.on('start', () => {
-  // bot.postMessageToChannel('general', 'I am live!')
-})
-bot.on('im_open', () => {
-  console.log('hej')
-})
-
 bot.on('team_join', () => {
   bot.postMessageToUser('UPRHBQXQX', 'någon loggade in!')
 })
@@ -50,7 +43,6 @@ bot.on('message', function(data) {
     return
   }
   if (data.user) {
-    console.log(data.user)
     bot
       .getUserById(data.user)
       .then((user, err) => {
@@ -263,8 +255,6 @@ setInterval(() => {
     users.map(user => {
       const time = Math.floor(new Date().getTime() / 1000)
       const created = Math.floor(user.created_at.getTime() / 1000)
-      console.log('time->', time)
-      console.log('created-->', created)
       if (Math.abs(time - created) > 120) {
         if (user.has_been_greeted === false) {
           bot.getUserById(user.slack_id).then(slackUser => {
