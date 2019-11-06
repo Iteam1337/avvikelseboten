@@ -5,10 +5,7 @@ const listTemplate = (req, res) => {
         type: 'section',
         text: {
           type: 'plain_text',
-          text:
-            'Hey ' +
-            req.body.user_name +
-            ' :smile:! You can use following commands:',
+          text: 'Hey ' + ' :smile:! You can use following commands:',
           emoji: true,
         },
       },

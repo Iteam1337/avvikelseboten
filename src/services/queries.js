@@ -11,12 +11,11 @@ const pool = new Pool({
 })
 
 const getReports = data => {
-  const { month, slack_id } = data
-  idUpper = slack_id.toUpperCase()
-
+  
   return new Promise((resolve, reject) => {
     pool.query(
-      `SELECT * FROM public.deviations INNER JOIN projects ON project_id = projects.id WHERE slack_id = '${idUpper}' AND time LIKE '${month}%' ORDER BY time ASC;`,
+      `SELECT * FROM deviations INNER JOIN projects ON project_id = projects.id WHERE time LIKE ($1) ORDER BY time ASC;`,
+      [data+'%'],
       (error, results) => {
         if (error) {
           throw error
@@ -41,7 +40,8 @@ const getAllUsers = data => {
 const userGreeted = data => {
   return new Promise((resolve, reject) => {
     pool.query(
-      `UPDATE public.users SET has_been_greeted = true WHERE slack_id = '${data}';`,
+      `UPDATE public.users SET has_been_greeted = true WHERE slack_id = ($1);`,
+      [data],
       (error, results) => {
         if (error) {
           throw error
@@ -55,7 +55,8 @@ const userGreeted = data => {
 const getUser = data => {
   return new Promise((resolve, reject) => {
     pool.query(
-      `SELECT * FROM public.users WHERE slack_id = '${data}';`,
+      `SELECT * FROM public.users WHERE slack_id = ($1);`,
+      [data],
       (error, results) => {
         if (error) {
           throw error
@@ -113,9 +114,10 @@ const getProjectByName = (data, response) => {
   return new Promise(resolve => {
     const project = data
     pool.query(
-      `SELECT id FROM public.projects WHERE name = '${project}';`,
+      `SELECT id FROM public.projects WHERE name = ($1);`,
+      [project],
       (error, results) => {
-        if (results.rowCount === 0) {
+        if (results && results.rowCount === 0) {
           resolve(undefined)
           return
         }
@@ -130,7 +132,8 @@ const getProjectById = (data, response) => {
   return new Promise(resolve => {
     const projectId = data
     pool.query(
-      `SELECT name FROM public.projects WHERE id = '${projectId}';`,
+      `SELECT name FROM public.projects WHERE id = ($1);`,
+      [projectId],
       (error, results) => {
         if (error) {
           throw error

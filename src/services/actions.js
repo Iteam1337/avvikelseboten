@@ -52,13 +52,14 @@ async function handleMessage(data, user) {
   option = text.split(' ')
 
   if (text) {
+    console.log(option[0])
     switch (option[0]) {
-      case '--me':
+      case 'me':
         // DISPLAY CURRENT USER ID AND NAME
         bot.postMessageToUser(userName, `ID: ${slack_id} Name: ${userName}`)
         break
 
-      case '--add':
+      case 'add':
         // ADD USER TO DATABASE
         const exists = await getUser(slack_id)
         if (exists.rowCount === 0) {
@@ -83,7 +84,7 @@ async function handleMessage(data, user) {
         }
         break
 
-      case '--whois':
+      case 'whois':
         // DISPLAY SOMEONES USER ID AND NAME <--- ONLY ADMIN, prompt for admin or password?
 
         if (!option[1]) {
@@ -114,7 +115,7 @@ async function handleMessage(data, user) {
         }
         break
 
-      case '--newproject':
+      case 'newproject':
         // POST REQUEST TO STORE A NEW PROJECT IN DATABASE
         let newProject = option[1].toUpperCase()
         let createProjectData = {
@@ -131,7 +132,7 @@ async function handleMessage(data, user) {
         bot.postMessageToUser(userName, message)
         break
 
-      case '--report':
+      case 'report':
         // POST REQUEST TO STORE A DEVIATION WITH FOLLOWING INFORMATION
         let hours = parseInt(option[1])
         let reason = option[2]
@@ -176,7 +177,7 @@ async function handleMessage(data, user) {
         bot.postMessageToUser(userName, message)
         break
 
-      case '--update':
+      case 'update':
         // PUT REQUEST TO UPDATE SPECIFIC ROW ON USER TABLE - but why? IS THIS USEFUL?!
 
         let whatUpdate = option[1]
@@ -187,7 +188,18 @@ async function handleMessage(data, user) {
         )
         break
 
-      case '--checkout':
+      case 'help':
+      case 'commands':
+        // More options to display list template
+        console.log('hej')
+        bot.postMessageToUser(
+          userName,
+          `• me Information about you\n• add Store your profile in the database!\n• whois Get user information on ID --> id eg. "--whois FUS8XPWQ12L"\n• update Update your information\n• report Report deviation -> Hours, Reason, Project & Time(YYYY-MM-DD) eg. "--report 8 Sick Vimla 2019-05-22"\n• checkout List your deviations for this month eg. "--checkout Oct"\n• \`newproject\` Create a new project by name, eg. "newproject Vimla"\n`
+        )
+        listTemplate()
+        break
+
+      case 'checkout':
         // GET REQUEST TO FETCH ALL DEVIATIONS FOR CURRENT USER FOR QUERIED MONTH
         let month = option[1].toUpperCase()
         let checkoutData = {
@@ -229,7 +241,7 @@ function handleAction(req, res, next) {
 }
 
 function listCommands(req, res, next) {
-  listTemplate(req, res)
+  if (req.body.text === 'help') listTemplate(req, res)
 }
 
 function displayPayloads(req, res, next) {}
@@ -250,7 +262,7 @@ setInterval(() => {
               userGreeted(user.slack_id)
               bot.postMessageToUser(
                 slackUser.name,
-                'Hej! Till mig kan du rapportera avvikelser för projekten ni jobbar på!\n Skriv /list för att lista alla kommandon!'
+                'Hej! Till mig kan du rapportera avvikelser för projekten du jobbar i!\n Skriv /list för att lista alla kommandon!'
               )
             }
           })

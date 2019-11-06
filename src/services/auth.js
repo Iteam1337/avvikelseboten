@@ -19,7 +19,8 @@ const validateRequest = (req, res, next) => {
       .createHmac('sha256', process.env.SIGNIN)
       .update(sigBasestring, 'utf8')
       .digest('hex')
-
+  console.log(mySignature)
+  console.log(slackSignature)
   if (
     crypto.timingSafeEqual(
       Buffer.from(mySignature, 'utf8'),
