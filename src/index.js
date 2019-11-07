@@ -16,9 +16,6 @@ app
     })
   )
 
-app.post('/actions', validateRequest, handleAction)
-app.post('/list', validateRequest, listCommands)
-app.post('/report', validateRequest, report)
 
 app.listen(port, () => {
   console.log(`server up at ${port}`)

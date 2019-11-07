@@ -11,11 +11,20 @@ const pool = new Pool({
 })
 
 const getReports = data => {
-  
   return new Promise((resolve, reject) => {
     pool.query(
-      `SELECT * FROM deviations INNER JOIN projects ON project_id = projects.id WHERE time LIKE ($1) ORDER BY time ASC;`,
-      [data+'%'],
+      `SELECT pr.name,
+      u.name AS "userName",
+      d.hours,
+      d.reason,
+      d.time
+      FROM deviations d
+      INNER JOIN projects pr ON d.project_id = pr.id
+      INNER JOIN users u ON d.slack_id = u.slack_id
+      WHERE time LIKE ($1)
+      ORDER BY time ASC;
+      `,
+      [data.month + '%'],
       (error, results) => {
         if (error) {
           throw error
@@ -68,10 +77,11 @@ const getUser = data => {
 }
 
 const createUser = data => {
+  const { slack_id, userName } = data
   return new Promise((resolve, reject) => {
     pool.query(
-      'INSERT INTO users (slack_id) VALUES ($1);',
-      [data],
+      'INSERT INTO users (slack_id, name) VALUES ($1, $2);',
+      [slack_id, userName],
       (error, results) => {
         if (error) {
           throw error

@@ -43,6 +43,18 @@ bot.on('message', function(data) {
   }
 })
 
+// async function userExists(slack_id, name) {
+//   const exists = await createUser(slack_id)
+
+//   if (exists.rowCount === 0) {
+//     try {
+//       await createUser(slack_id, name)
+//     } catch (err) {
+//       throw new Error('Something went wrong when trying to add user: ', err)
+//     }
+//   }
+// }
+
 async function handleMessage(data, user) {
   const slack_id = data.user
   const text = data.text
@@ -52,19 +64,22 @@ async function handleMessage(data, user) {
   option = text.split(' ')
 
   if (text) {
-    console.log(option[0])
-    switch (option[0]) {
-      case 'me':
+    switch (option[0].toUpperCase()) {
+      case 'ME':
         // DISPLAY CURRENT USER ID AND NAME
         bot.postMessageToUser(userName, `ID: ${slack_id} Name: ${userName}`)
         break
 
-      case 'add':
+      case 'ADD':
         // ADD USER TO DATABASE
         const exists = await getUser(slack_id)
         if (exists.rowCount === 0) {
           try {
-            await createUser(slack_id)
+            const addData = {
+              slack_id,
+              userName,
+            }
+            await createUser(addData)
           } catch (err) {
             throw new Error(
               'Something went wrong when trying to add user: ',
@@ -74,7 +89,7 @@ async function handleMessage(data, user) {
 
           bot.postMessageToUser(
             userName,
-            `Your ID: ${slack_id} was saved to the database!`
+            `Your ID: ${slack_id} was saved to the database as ${userName}!`
           )
         } else {
           bot.postMessageToUser(
@@ -84,7 +99,7 @@ async function handleMessage(data, user) {
         }
         break
 
-      case 'whois':
+      case 'WHOIS':
         // DISPLAY SOMEONES USER ID AND NAME <--- ONLY ADMIN, prompt for admin or password?
 
         if (!option[1]) {
@@ -115,7 +130,7 @@ async function handleMessage(data, user) {
         }
         break
 
-      case 'newproject':
+      case 'NEWPROJECT':
         // POST REQUEST TO STORE A NEW PROJECT IN DATABASE
         let newProject = option[1].toUpperCase()
         let createProjectData = {
@@ -132,26 +147,25 @@ async function handleMessage(data, user) {
         bot.postMessageToUser(userName, message)
         break
 
-      case 'report':
+      case 'REPORT':
         // POST REQUEST TO STORE A DEVIATION WITH FOLLOWING INFORMATION
+        let differentReasons = ['SICK', 'SJUK', 'VAB', 'EXTRA', 'OTHER']
+        let reason = option[2].toUpperCase()
+
         let hours = parseInt(option[1])
-        let reason = option[2]
+        if (differentReasons.includes(reason)) {
+          if (reason !== 'EXTRA') {
+            hours = -hours
+          }
+        }
         let project = option[3].toUpperCase()
         let time = moment(option[4])
           .format('LL')
           .toUpperCase()
 
-        // TODO DEN HÄR FUNKTIONEN KASTAR FATAL FEL OM PROJECT INTE FINNS
         let project_id = await getProjectByName(project)
-        let reportData = {
-          hours,
-          reason,
-          project_id,
-          slack_id,
-          time,
-        }
 
-        if ((hours, reason, time === undefined)) {
+        if ((hours, project, reason, time === undefined)) {
           message = 'One option was not reported correctly!'
         } else if (hours === NaN) {
           message =
@@ -162,22 +176,30 @@ async function handleMessage(data, user) {
           message = "Couldn't find any project with that name"
         } else {
           message = `You just reported ${hours}h of ${reason} for project ${project} at the date of: ${time}!`
-          if (reportData) {
-            try {
-              await reportDeviation(reportData)
-            } catch (err) {
-              bot.postMessageToUser(
-                `Something went wrong fetching data: ${err}`
-              )
-              console.error(err)
-            }
+        }
+
+        // TODO DEN HÄR FUNKTIONEN KASTAR FATAL FEL OM PROJECT INTE FINNS
+        let reportData = {
+          hours,
+          reason,
+          project_id,
+          slack_id,
+          time,
+        }
+
+        if (reportData) {
+          try {
+            await reportDeviation(reportData)
+          } catch (err) {
+            bot.postMessageToUser(`Something went wrong fetching data: ${err}`)
+            console.error(err)
           }
         }
 
         bot.postMessageToUser(userName, message)
         break
 
-      case 'update':
+      case 'UPDATE':
         // PUT REQUEST TO UPDATE SPECIFIC ROW ON USER TABLE - but why? IS THIS USEFUL?!
 
         let whatUpdate = option[1]
@@ -188,33 +210,40 @@ async function handleMessage(data, user) {
         )
         break
 
-      case 'help':
-      case 'commands':
+      case 'HELP':
+      case 'COMMANDS':
+      case 'LIST':
+      case 'OPTIONS':
         // More options to display list template
-        console.log('hej')
         bot.postMessageToUser(
           userName,
-          `• me Information about you\n• add Store your profile in the database!\n• whois Get user information on ID --> id eg. "--whois FUS8XPWQ12L"\n• update Update your information\n• report Report deviation -> Hours, Reason, Project & Time(YYYY-MM-DD) eg. "--report 8 Sick Vimla 2019-05-22"\n• checkout List your deviations for this month eg. "--checkout Oct"\n• \`newproject\` Create a new project by name, eg. "newproject Vimla"\n`
+          `• \`me\` Information about you\n• \`add\` Store your profile in the database!\n• \`whois\` Get user information on ID (eg. "whois FUS8XPWQ12L")\n• \`update\` Update your information *--COMING SOON--*\n• \`report\` Report deviation (eg. "report 8 Sick Vimla 2019-05-22")\n• \`check\` List your deviations for this month (eg. "check oct")\n• \`newproject\` Create a new project by name (eg. "newproject Vimla")\n`
         )
-        listTemplate()
         break
 
-      case 'checkout':
+      case 'CHECK':
         // GET REQUEST TO FETCH ALL DEVIATIONS FOR CURRENT USER FOR QUERIED MONTH
-        let month = option[1].toUpperCase()
+        let month
+        if (!option[1]) {
+          month = moment()
+            .format('MMMM')
+            .toUpperCase()
+        } else {
+          month = option[1].toUpperCase()
+        }
         let checkoutData = {
           month,
-          slack_id,
         }
-
         const data = await getReports(checkoutData)
-
-        if (data.length > 0) {
+        let accTime = []
+        if (data.length !== 0) {
           for (i = 0; i < data.length; i++) {
-            projectName = await getProjectById(data[0].project_id)
+            accTime.push(data[i].hours)
+
+            let week = moment(data[i].time).isoWeek()
             bot.postMessageToUser(
               userName,
-              `*${data[i].time}*\n${data[i].hours}h | ${data[i].reason} | ${data[i].name}!`
+              `v.*${week} <-> ${data[i].time}*\n*${data[i].userName}* | ${data[i].hours}h | ${data[i].reason} | ${data[i].name}!`
             )
           }
         } else if (data.length === 0) {
@@ -223,6 +252,16 @@ async function handleMessage(data, user) {
             `It seems you have nothing reported for that month!`
           )
         }
+        // VARFÖR HAMNAR DEN HÄR HÖGST UPP IBLAND????
+        if (accTime.length > 0) {
+          totalReport = accTime.reduce((a, b) => a + b)
+          bot.postMessageToUser(
+            userName,
+            `*************************\n\n *Total report for the month: ${totalReport} hours*`
+          )
+          console.log(accTime, totalReport)
+        }
+
         break
 
       default:
@@ -240,15 +279,13 @@ function handleAction(req, res, next) {
   })
 }
 
-function listCommands(req, res, next) {
-  if (req.body.text === 'help') listTemplate(req, res)
-}
+// function listCommands(req, res, next) {
+//   listTemplate(req, res)
+// }
 
-function displayPayloads(req, res, next) {}
-
-function report(req, res, next) {
-  reportTemplate(req, res)
-}
+// function report(req, res, next) {
+//   reportTemplate(req, res)
+// }
 
 setInterval(() => {
   getAllUsers().then(users => {
@@ -274,7 +311,6 @@ setInterval(() => {
 
 module.exports = {
   handleAction,
-  listCommands,
-  report,
-  displayPayloads,
+  // listCommands,
+  // report,
 }
