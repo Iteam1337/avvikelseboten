@@ -236,30 +236,40 @@ async function handleMessage(data, user) {
         }
         const data = await getReports(checkoutData)
         let accTime = []
+        let totalReport
+        let reportString = []
+
         if (data.length !== 0) {
           for (i = 0; i < data.length; i++) {
             accTime.push(data[i].hours)
 
             let week = moment(data[i].time).isoWeek()
-            bot.postMessageToUser(
-              userName,
-              `v.*${week} <-> ${data[i].time}*\n*${data[i].userName}* | ${data[i].hours}h | ${data[i].reason} | ${data[i].name}!`
+
+            reportString.push(
+              `v.*${week} <-> ${data[i].time}*\n*${data[i].userName}* | ${data[i].hours}h | ${data[i].reason} | ${data[i].name}!\n`
             )
+
+            // bot.postMessageToUser(
+            //   userName,
+            //   `v.*${week} <-> ${data[i].time}*\n*${data[i].userName}* | ${data[i].hours}h | ${data[i].reason} | ${data[i].name}!`
+            // )
           }
         } else if (data.length === 0) {
           bot.postMessageToUser(
             userName,
             `It seems you have nothing reported for that month!`
           )
+          break
         }
         // VARFÖR HAMNAR DEN HÄR HÖGST UPP IBLAND????
         if (accTime.length > 0) {
           totalReport = accTime.reduce((a, b) => a + b)
+          let toString = reportString.join('\n')
           bot.postMessageToUser(
             userName,
-            `*************************\n\n *Total report for the month: ${totalReport} hours*`
+            toString +
+              `\n\n*************************\n *Total report for the month: ${totalReport} hours*`
           )
-          console.log(accTime, totalReport)
         }
 
         break
