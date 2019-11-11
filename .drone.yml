@@ -1,0 +1,10 @@
+pipeline:
+  build:
+    image: plugins/docker
+    repo: ${DRONE_REPO,,}
+    secrets: [docker_username, docker_password]
+    force_tag: true
+    tags: latest
+    when:
+      branch: master
+      event: push
