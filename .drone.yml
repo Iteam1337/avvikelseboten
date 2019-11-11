@@ -8,3 +8,18 @@ pipeline:
     when:
       branch: master
       event: push
+
+  redeploy_master:
+    image: docker:18.06.0-ce
+    environment:
+      - DOCKER_HOST=tcp://192.168.100.184:2375
+      - DOCKER_USERNAME=${docker_username}
+      - DOCKER_PASSWORD=${docker_password}
+    secrets: [ docker_username, docker_password ]
+    commands:
+      - echo $DOCKER_PASSWORD | docker login --username "$DOCKER_USERNAME" --password-stdin
+      - docker service create --image ${DRONE_REPO,,}:latest avvikelseboten --with-registry-auth
+    when:
+      status: success
+      event: push
+      branch: master
