@@ -7,7 +7,7 @@ services:
       - SLACK_TOKEN
       - DB_USER=iteamadmin
       - DB_PASSWORD=adminadmin1337
-      - DB_USER=postgres
+      - DB_HOST=postgres
       - DB_DATABASE=avvikelseboten
 
   postgres:
