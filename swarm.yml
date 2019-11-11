@@ -3,3 +3,5 @@ version: '3.7'
 services:
   bot:
     image: iteam1337/avvikelseboten
+    environment:
+      SLACK_TOKEN:
