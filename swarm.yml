@@ -15,7 +15,7 @@ services:
     volumes:
       - postgres11:/var/lib/postgresql/data
     ports:
-      - 127.0.0.1:5432
+      - 5432:5432
     environment:
       - POSTGRES_USER=${POSTGRES__USER:-iteamadmin}
       - POSTGRES_PASSWORD=${POSTGRES__PASS:-adminadmin1337}
