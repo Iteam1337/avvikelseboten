@@ -19,7 +19,9 @@ pipeline:
     secrets: [ docker_username, docker_password ]
     commands:
       - echo $DOCKER_PASSWORD | docker login --username "$DOCKER_USERNAME" --password-stdin
-      - env SLACK_TOKEN=${slack_token} docker stack deploy --compose-file swarm.yml avvikelseboten --with-registry-auth
+      - echo $slack_token
+      - echo $SLACK_TOKEN
+      - SLACK_TOKEN=${slack_token} docker stack deploy --compose-file swarm.yml avvikelseboten --with-registry-auth
     when:
       status: success
       event: push
