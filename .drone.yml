@@ -6,7 +6,7 @@ pipeline:
     force_tag: true
     tags: latest
     when:
-      branch: degrgrgg
+      branch: master
       event: push
 
   redeploy_master:
