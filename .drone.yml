@@ -16,7 +16,7 @@ pipeline:
       - DOCKER_USERNAME=${docker_username}
       - DOCKER_PASSWORD=${docker_password}
       - SLACK_TOKEN=${slack_token}
-    secrets: [ docker_username, docker_password ]
+    secrets: [ docker_username, docker_password, slack_token ]
     commands:
       - echo $DOCKER_PASSWORD | docker login --username "$DOCKER_USERNAME" --password-stdin
       - echo $slack_token
