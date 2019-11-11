@@ -4,11 +4,11 @@ services:
   bot:
     image: iteam1337/avvikelseboten
     environment:
-      SLACK_TOKEN:
-      DB_USER: iteamadmin
-      DB_PASSWORD: adminadmin1337
-      DB_USER: postgres
-      DB_DATABASE: avvikelseboten
+      - SLACK_TOKEN
+      - DB_USER=iteamadmin
+      - DB_PASSWORD=adminadmin1337
+      - DB_USER=postgres
+      - DB_DATABASE=avvikelseboten
 
   postgres:
     image: postgres:11.5
